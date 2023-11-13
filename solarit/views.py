@@ -42,6 +42,39 @@ llm = ChatOpenAI( model_name="gpt-3.5-turbo", temperature=0.2, max_tokens=30)
 
 
 
+# API to get Chatbot System Role   
+def get_chatbot_system_role():
+    system_template = Template.objects.first()
+    if system_template:
+         serializer = Template_Serializer(system_template, many=False)
+         return Response({"message": serializer.data})
+    else:
+        return Response({"message": "No system template"})       
+
+# Prompt 
+def handle_prompts(user_input):
+    try:
+        retrieved_system_role = get_chatbot_system_role()
+        template = f"""
+                You are a Customer Service Rep for a Solar company called Solarit.
+                        Check here for more information:{retrieved_system_role}
+                        The role play scenerio would look like this:
+                         
+                        """
+        prompt = ChatPromptTemplate(
+        messages=[
+        SystemMessagePromptTemplate.from_template(template=template),
+        # The `variable_name` here is what must align with memory
+        MessagesPlaceholder(variable_name="chat_history"),
+        HumanMessagePromptTemplate.from_template("{question}")
+        ]
+        )
+        return prompt
+    except:
+        return ValueError("Problem with handle_prompts")
+    
+
+
 
 # Extract text from Txt Documents
 def extract_raw_text_from_txt_documents():
@@ -109,29 +142,8 @@ def count_tokens(conversation, user_input):
         return result
     except:
         return ValueError("Problem with count_tokens function")
-        
 
-# Prompt 
-def handle_prompts(user_input):
-    try:
-        retrieved_system_role = retrieve_data_from_database_model()
-        template = f"""
-                You are a Customer Service Rep for a Solar company called Solarit.
-                        Check here for more information:{retrieved_system_role}
-                        The role play scenerio would look like this:
-                         
-                        """
-        prompt = ChatPromptTemplate(
-        messages=[
-        SystemMessagePromptTemplate.from_template(template=template),
-        # The `variable_name` here is what must align with memory
-        MessagesPlaceholder(variable_name="chat_history"),
-        HumanMessagePromptTemplate.from_template("{question}")
-        ]
-        )
-        return prompt
-    except:
-        return ValueError("Problem with handle_prompts")
+ 
         
 def run_conversation(prompt, memory):
     try:
@@ -218,15 +230,7 @@ def post_chatbot_system_role(request):
          return Response({"message": "Problem updating template"})
 
 
-# API to get Chatbot System Role   
-@api_view(['GET'])
-def get_chatbot_system_role(request):
-    system_template = Template.objects.first()
-    if system_template:
-         serializer = Template_Serializer(system_template, many=False)
-         return Response({"message": serializer.data})
-    else:
-        return Response({"message": "No system template"})
+
 
 
 
@@ -249,6 +253,7 @@ def get_chatbot_response(request):
                 count_tokens(conversation, user_input)
                 data = []
                 data.append(response)
+                print(response)
                 return Response({"message": data})
             else:
                 return "Error with user_input variable"
