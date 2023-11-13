@@ -153,5 +153,5 @@ def get_reponse_from_lotto_machine(request):
             matching_counters = find_matching_nums(user_input_numbers)
             processed_result = find_processed_result(last_num, first_num)
             return Response({'message': processed_result})
-        except:
-            return Response({"message": "Problem with one of the process inside get_response_from_lotto_machine function"})
+        except Exception as e:
+            return Response({"message": str(e)})

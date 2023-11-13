@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'api',
     'dateme',
     'lotto',
+    'solarit',
 ]
 
 MIDDLEWARE = [
